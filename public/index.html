@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kalua Aadhaar Family Intelligence Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030307;
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #b174ff;
+      --danger: #ff4d4d;
+      --surface: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+      --text-dim: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body, html { width: 100%; height: 100dvh; background-color: var(--bg); color: var(--text); overflow: hidden; position: fixed; }
+    .ambient-glow { position: absolute; width: 140vw; height: 140vw; background: radial-gradient(circle, rgba(177,116,255,0.14) 0%, rgba(0,242,254,0.06) 40%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1; }
+    .glass-card { background: var(--surface); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    
+    #lockUI { position: absolute; inset: 0; z-index: 100; display: flex; justify-content: center; align-items: center; padding: 20px; background: var(--bg); }
+    .lock-box { width: 100%; max-width: 340px; padding: 35px 24px; text-align: center; display: flex; flex-direction: column; gap: 16px; }
+    .lock-box h1 { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .input-field { width: 100%; padding: 14px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 14px; color: var(--text); font-size: 14px; text-align: center; outline: none; transition: 0.3s; }
+    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0,242,254,0.25); }
+    
+    .btn-3d { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #000; font-size: 14px; font-weight: 800; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 8px 25px rgba(0,242,254,0.3); text-transform: uppercase; }
+    .btn-3d:active { transform: scale(0.97); }
+    
+    #appUI { display: none; flex-direction: column; height: 100dvh; padding: 16px; gap: 14px; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+    .top-header h2 { font-size: 14px; font-weight: 800; }
+    .top-header h2 span { color: var(--primary); }
+    
+    .nav-tabs { display: flex; background: rgba(0,0,0,0.5); border-radius: 14px; padding: 4px; border: 1px solid var(--border); gap: 4px; }
+    .tab-btn { flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-dim); border-radius: 10px; cursor: pointer; transition: 0.3s; }
+    .tab-btn.active { background: var(--surface); color: var(--primary); border: 1px solid var(--border); }
+    
+    .hub-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-label { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+    
+    #formView { display: flex; flex-direction: column; gap: 14px; }
+    #resultView { display: none; flex-direction: column; gap: 12px; }
+    
+    .result-box { background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,254,0.25); border-radius: 14px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .res-info { flex: 1; overflow: hidden; }
+    .res-title { font-size: 10px; color: var(--primary); text-transform: uppercase; font-weight: 700; margin-bottom: 3px; }
+    .res-val { font-family: monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    
+    .copy-btn { background: var(--surface); border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px; color: var(--text); font-size: 11px; font-weight: 700; cursor: pointer; }
+    
+    #adminView { display: none; flex-direction: column; gap: 12px; }
+    .key-item { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .key-details { font-family: monospace; font-size: 11px; display: flex; flex-direction: column; gap: 4px; }
+    .del-btn { background: rgba(255,77,77,0.15); color: var(--danger); border: 1px solid rgba(255,77,77,0.3); padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    
+    .footer-credits { text-align: center; font-size: 11px; color: var(--text-dim); padding: 8px; font-weight: 600; margin-top: auto; }
+    .footer-credits span { color: #fff; font-weight: 700; }
+  </style>
+</head>
+<body>
+<div class="ambient-glow"></div>
+
+<div id="lockUI">
+  <div class="glass-card lock-box">
+    <h1 id="lockTitle">AADHAAR FAMILY HUB</h1>
+    <input type="password" id="passInput" class="input-field" placeholder="Enter Password" onkeydown="if(event.key==='Enter')unlock()">
+    <button class="btn-3d" onclick="unlock()" id="unlockBtn">Access Portal</button>
+  </div>
+</div>
+
+<div id="appUI">
+  <div class="top-header">
+    <h2>FAMILY <span>INTELLIGENCE</span></h2>
+    <div style="font-size: 11px; color: var(--primary); font-weight: 700;">@KaluaApiStore</div>
+  </div>
+
+  <div class="nav-tabs">
+    <div class="tab-btn active" id="tabUser" onclick="switchTab('user')">User Panel</div>
+    <div class="tab-btn" id="tabAdmin" onclick="switchTab('admin')">Admin Panel</div>
+  </div>
+
+  <div class="glass-card hub-card">
+    <div id="userSection">
+      <div id="formView">
+        <div class="input-group">
+          <label class="input-label">Customer Username / Tag</label>
+          <input type="text" id="custName" class="input-field" placeholder="e.g. Rahul" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Validity (Days)</label>
+          <input type="number" id="keyDays" class="input-field" value="3" min="1" max="365">
+        </div>
+
+        <button class="btn-3d" onclick="generateKey()">Generate API Key</button>
+      </div>
+
+      <div id="resultView">
+        <h3 style="color:var(--primary); text-align:center; font-size:14px; font-weight:800;">Key Generated Successfully</h3>
+        <div class="result-box">
+          <div class="res-info">
+            <div class="res-title">API Key</div>
+            <div class="res-val" id="valKey">...</div>
+          </div>
+          <button class="copy-btn" onclick="copyText('valKey', this)">Copy</button>
+        </div>
+        <div class="result-box">
+          <div class="res-info">
+            <div class="res-title">Ready Endpoint</div>
+            <div class="res-val" id="valUrl">...</div>
+          </div>
+          <button class="copy-btn" onclick="copyText('valUrl', this)">Copy</button>
+        </div>
+        <button class="btn-3d" onclick="resetForm()" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: none;">Create Another</button>
+      </div>
+    </div>
+
+    <div id="adminView">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+        <span style="font-size:12px; font-weight:700; color:var(--primary)">Active Keys List</span>
+        <button class="copy-btn" onclick="loadAdminKeys()">Refresh</button>
+      </div>
+      <div id="keysContainer" style="display:flex; flex-direction:column; gap:10px; max-height:260px; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <div class="footer-credits">
+    powered by: <span>KaluaApiAdmin</span> | channel: <span>KaluaApiStore</span>
+  </div>
+</div>
+
+<script>
+const USER_PASS = "KaluaApiAdmin";
+const ADMIN_PASS = "KaluaApiStore";
+
+let currentMode = "user";
+let isUserAuthed = false;
+let isAdminAuthed = false;
+
+function unlock() {
+  const input = document.getElementById('passInput');
+  const btn = document.getElementById('unlockBtn');
+  const val = input.value.trim();
+
+  if (currentMode === "user" && val === USER_PASS) {
+    isUserAuthed = true;
+    showApp();
+  } else if (currentMode === "admin" && val === ADMIN_PASS) {
+    isAdminAuthed = true;
+    showApp();
+  } else {
+    input.value = "";
+    input.placeholder = "Wrong Password!";
+    input.style.borderColor = "var(--danger)";
+    setTimeout(() => input.style.borderColor = "var(--border)", 1000);
+  }
+}
+
+function showApp() {
+  document.getElementById('lockUI').style.display = 'none';
+  document.getElementById('appUI').style.display = 'flex';
+  renderTabContent();
+}
+
+function switchTab(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  if (mode === 'user') {
+    document.getElementById('tabUser').classList.add('active');
+    if (!isUserAuthed) {
+      document.getElementById('lockTitle').innerText = "USER PORTAL";
+      document.getElementById('passInput').value = "";
+      document.getElementById('lockUI').style.display = 'flex';
+      return;
+    }
+  } else {
+    document.getElementById('tabAdmin').classList.add('active');
+    if (!isAdminAuthed) {
+      document.getElementById('lockTitle').innerText = "ADMIN PANEL";
+      document.getElementById('passInput').value = "";
+      document.getElementById('lockUI').style.display = 'flex';
+      return;
+    }
+  }
+  renderTabContent();
+}
+
+function renderTabContent() {
+  if (currentMode === 'user') {
+    document.getElementById('userSection').style.display = 'block';
+    document.getElementById('adminView').style.display = 'none';
+  } else {
+    document.getElementById('userSection').style.display = 'none';
+    document.getElementById('adminView').style.display = 'flex';
+    loadAdminKeys();
+  }
+}
+
+async function generateKey() {
+  const username = document.getElementById('custName').value.trim() || 'VIP';
+  const days = document.getElementById('keyDays').value.trim() || '3';
+
+  try {
+    const res = await fetch('/api/generate-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, days })
+    });
+    const data = await res.json();
+    
+    if(data.status === 'success') {
+      const sampleNum = '123456789012';
+      const endpoint = `${window.location.origin}/api/family-info/${data.key}?num=${sampleNum}`;
+
+      document.getElementById('valKey').innerText = data.key;
+      document.getElementById('valUrl').innerText = endpoint;
+      document.getElementById('formView').style.display = 'none';
+      document.getElementById('resultView').style.display = 'flex';
+    }
+  } catch(e) {
+    alert("Error generating key!");
+  }
+}
+
+function resetForm() {
+  document.getElementById('resultView').style.display = 'none';
+  document.getElementById('formView').style.display = 'flex';
+}
+
+async function loadAdminKeys() {
+  const container = document.getElementById('keysContainer');
+  container.innerHTML = `<div style="text-align:center; font-size:11px; color:var(--text-dim)">Loading keys...</div>`;
+
+  try {
+    const res = await fetch('/api/admin/list-keys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPass: ADMIN_PASS })
+    });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      if (data.keys.length === 0) {
+        container.innerHTML = `<div style="text-align:center; font-size:11px; color:var(--text-dim)">No active keys found</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      data.keys.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'key-item';
+        div.innerHTML = `
+          <div class="key-details">
+            <span style="color:#fff; font-weight:700;">${item.key}</span>
+            <span style="color:var(--text-dim)">User: ${item.user} | Days: ${item.days}</span>
+          </div>
+          <button class="del-btn" onclick="revokeKey('${item.key}')">Revoke</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+  } catch(e) {
+    container.innerHTML = `<div style="text-align:center; font-size:11px; color:var(--danger)">Failed to load keys</div>`;
+  }
+}
+
+async function revokeKey(key) {
+  if(!confirm("Are you sure you want to delete this key?")) return;
+  
+  try {
+    const res = await fetch('/api/admin/delete-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPass: ADMIN_PASS, key })
+    });
+    const data = await res.json();
+    if(data.status === 'success') {
+      loadAdminKeys();
+    }
+  } catch(e) {
+    alert("Failed to delete key!");
+  }
+}
+
+function copyText(id, btn) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerText;
+    btn.innerText = "COPIED";
+    setTimeout(() => btn.innerText = orig, 1500);
+  });
+}
+</script>
+</body>
+</html>
