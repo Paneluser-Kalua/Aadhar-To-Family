@@ -12,8 +12,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // In-Memory Key Database
 const activeKeys = {};
 
-// Upstream fetch helper
+// Upstream fetch helper with enhanced error logging
 async function fetchUpstream(url) {
+    console.log(`[DEBUG] Fetching upstream URL: ${url}`);
     const response = await fetch(url, {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -22,8 +23,11 @@ async function fetchUpstream(url) {
     });
 
     const textData = await response.text();
+    console.log(`[DEBUG] Upstream Response Status: ${response.status}`);
+    console.log(`[DEBUG] Upstream Response Body (first 200 chars): ${textData.slice(0, 200)}`);
+
     if (textData.trim().startsWith('<!DOCTYPE') || textData.trim().startsWith('<html')) {
-        throw new Error("Upstream returned HTML response");
+        throw new Error("Upstream returned HTML response (Endpoint might be down or blocked)");
     }
 
     try {
@@ -111,7 +115,8 @@ app.get('/api/family-info/:key', async (req, res) => {
     }
 
     try {
-        const upstreamUrl = `https://api.allprinthub.in/api?=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
+        // Fixed query string parameter formatting (added action= or check your upstream provider's required key name)
+        const upstreamUrl = `https://api.allprinthub.in/api?action=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
         const upstreamData = await fetchUpstream(upstreamUrl);
 
         // Direct JSON merge without duplicate keys
@@ -121,12 +126,14 @@ app.get('/api/family-info/:key', async (req, res) => {
             ...upstreamData
         });
     } catch (err) {
+        console.error(`[Error] Upstream fetch failed:`, err.message);
         return res.status(500).json({
             "powered by": "KaluaApiAdmin",
             "channel": "KaluaApiStore",
             "status": false,
             "status_code": 500,
-            "message": "pls purchase premium on KaluaApi Store"
+            "message": "Upstream error or server unreachable",
+            "error_details": err.message
         });
     }
 });
