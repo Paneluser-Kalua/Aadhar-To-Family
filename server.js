@@ -85,7 +85,7 @@ app.post('/api/admin/delete-key', (req, res) => {
     return res.json({ status: "success", message: "Key revoked successfully!" });
 });
 
-// Normal & Direct Family Info API Endpoint
+// Clean & Direct Family Info API Endpoint
 app.get('/api/family-info/:key', async (req, res) => {
     const key = req.params.key;
     const num = req.query.num || req.query.aadhaar || req.query.q;
@@ -114,7 +114,7 @@ app.get('/api/family-info/:key', async (req, res) => {
         const upstreamUrl = `https://api.allprinthub.in/api?=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
         const upstreamData = await fetchUpstream(upstreamUrl);
 
-        // Direct data format with exact branding
+        // Direct JSON merge without duplicate keys
         return res.json({
             "powered by": "KaluaApiAdmin",
             "channel": "KaluaApiStore",
@@ -126,8 +126,7 @@ app.get('/api/family-info/:key', async (req, res) => {
             "channel": "KaluaApiStore",
             "status": false,
             "status_code": 500,
-            "message": "pls purchase premium on KaluaApi Store",
-            "details": err.message
+            "message": "pls purchase premium on KaluaApi Store"
         });
     }
 });
