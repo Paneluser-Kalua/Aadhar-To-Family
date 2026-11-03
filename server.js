@@ -86,7 +86,7 @@ app.post('/api/admin/delete-key', (req, res) => {
     return res.json({ status: "success", message: "🚀 Key revoked successfully!" });
 });
 
-// Family Info API Endpoint (Cleaned JSON structure without duplicates)
+// Family Info API Endpoint (Strictly Clean & Non-Duplicate Format)
 app.get('/api/family-info/:key', async (req, res) => {
     const key = req.params.key;
     const num = req.query.num || req.query.aadhaar || req.query.q;
@@ -115,16 +115,12 @@ app.get('/api/family-info/:key', async (req, res) => {
         const upstreamUrl = `https://api.allprinthub.in/api?=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
         const upstreamData = await fetchUpstream(upstreamUrl);
 
-        // Clean & Perfect JSON structure matching exact target format
+        // Sirf ek hi baar saara data merge karke return karega taaki koi duplicate key na bane
         return res.json({
             "powered by": "🔥 KaluaApiAdmin",
             "channel": "💎 KaluaApiStore",
-            "status": upstreamData.status ?? true,
-            "status_code": upstreamData.status_code ?? 200,
-            "message": "✨ Family details fetched instantly from local database cache (0 OTP used) 🚀",
-            "data": upstreamData.data || upstreamData,
-            "cached": upstreamData.cached ?? true,
-            "cached_at": upstreamData.cached_at || new Date().toISOString()
+            ...upstreamData,
+            "message": "✨ Family details fetched instantly from local database cache (0 OTP used) 🚀"
         });
     } catch (err) {
         return res.status(500).json({
