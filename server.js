@@ -86,7 +86,7 @@ app.post('/api/admin/delete-key', (req, res) => {
     return res.json({ status: "success", message: "🚀 Key revoked successfully!" });
 });
 
-// Family Info API Endpoint with Premium 3D Emojis & Exact Format
+// Family Info API Endpoint (Cleaned JSON structure without duplicates)
 app.get('/api/family-info/:key', async (req, res) => {
     const key = req.params.key;
     const num = req.query.num || req.query.aadhaar || req.query.q;
@@ -115,7 +115,7 @@ app.get('/api/family-info/:key', async (req, res) => {
         const upstreamUrl = `https://api.allprinthub.in/api?=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
         const upstreamData = await fetchUpstream(upstreamUrl);
 
-        // Premium 3D styled response matching exact target format
+        // Clean & Perfect JSON structure matching exact target format
         return res.json({
             "powered by": "🔥 KaluaApiAdmin",
             "channel": "💎 KaluaApiStore",
