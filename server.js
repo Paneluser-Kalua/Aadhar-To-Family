@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // In-Memory Key Database
 const activeKeys = {};
 
-// Upstream fetch helper with enhanced error logging
+// Upstream fetch helper with logs
 async function fetchUpstream(url) {
     console.log(`[DEBUG] Fetching upstream URL: ${url}`);
     const response = await fetch(url, {
@@ -23,11 +23,11 @@ async function fetchUpstream(url) {
     });
 
     const textData = await response.text();
-    console.log(`[DEBUG] Upstream Response Status: ${response.status}`);
-    console.log(`[DEBUG] Upstream Response Body (first 200 chars): ${textData.slice(0, 200)}`);
+    console.log(`[DEBUG] Upstream Status: ${response.status}`);
+    console.log(`[DEBUG] Upstream Response: ${textData.slice(0, 300)}`);
 
     if (textData.trim().startsWith('<!DOCTYPE') || textData.trim().startsWith('<html')) {
-        throw new Error("Upstream returned HTML response (Endpoint might be down or blocked)");
+        throw new Error("Upstream returned HTML response");
     }
 
     try {
@@ -115,11 +115,10 @@ app.get('/api/family-info/:key', async (req, res) => {
     }
 
     try {
-        // Fixed query string parameter formatting (added action= or check your upstream provider's required key name)
-        const upstreamUrl = `https://api.allprinthub.in/api?action=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
+        // Corrected upstream query parameter format based on upstream error guide
+        const upstreamUrl = `https://api.allprinthub.in/api?api=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
         const upstreamData = await fetchUpstream(upstreamUrl);
 
-        // Direct JSON merge without duplicate keys
         return res.json({
             "powered by": "KaluaApiAdmin",
             "channel": "KaluaApiStore",
