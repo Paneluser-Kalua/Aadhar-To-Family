@@ -29,28 +29,9 @@ async function fetchUpstream(url) {
     try {
         return JSON.parse(textData);
     } catch (e) {
-        return textData;
+        throw new Error("Invalid JSON response from upstream");
     }
 }
-
-const sendSuccess = (res, data) => {
-    return res.json({
-        "powered by": "KaluaApiAdmin",
-        "channel": "KaluaApiStore",
-        "status": "success",
-        "data": data
-    });
-};
-
-const sendError = (res, details = "Service failure") => {
-    return res.status(500).json({
-        "powered by": "KaluaApiAdmin",
-        "channel": "KaluaApiStore",
-        "status": "error",
-        "message": "pls purchase premium on KaluaApi Store",
-        "details": details
-    });
-};
 
 // Generate API Key Endpoint
 app.post('/api/generate-key', (req, res) => {
@@ -68,14 +49,18 @@ app.post('/api/generate-key', (req, res) => {
         days: numDays
     };
 
-    return res.json({ status: "success", key: apiKey });
+    return res.json({ 
+        status: "success", 
+        emoji: "💎✨", 
+        key: apiKey 
+    });
 });
 
 // Admin: List Keys
 app.post('/api/admin/list-keys', (req, res) => {
     const { adminPass } = req.body;
     if (adminPass !== "KaluaApiStore") {
-        return res.status(403).json({ status: "error", message: "Unauthorized" });
+        return res.status(403).json({ status: "error", message: "🔒 Unauthorized Access!" });
     }
 
     const keyList = Object.keys(activeKeys).map(k => ({
@@ -92,48 +77,68 @@ app.post('/api/admin/list-keys', (req, res) => {
 app.post('/api/admin/delete-key', (req, res) => {
     const { adminPass, key } = req.body;
     if (adminPass !== "KaluaApiStore") {
-        return res.status(403).json({ status: "error", message: "Unauthorized" });
+        return res.status(403).json({ status: "error", message: "🔒 Unauthorized Access!" });
     }
 
     if (activeKeys[key]) {
         delete activeKeys[key];
     }
-    return res.json({ status: "success", message: "Key revoked successfully" });
+    return res.json({ status: "success", message: "🚀 Key revoked successfully!" });
 });
 
-// Aadhaar Family API Endpoint with Key Verification
+// Family Info API Endpoint with Premium 3D Emojis & Exact Format
 app.get('/api/family-info/:key', async (req, res) => {
     const key = req.params.key;
     const num = req.query.num || req.query.aadhaar || req.query.q;
 
     if (!activeKeys[key] || Date.now() > activeKeys[key].expiresAt) {
         return res.status(403).json({
-            "powered by": "KaluaApiAdmin",
-            "channel": "KaluaApiStore",
-            "status": "error",
-            "message": "pls purchase premium on KaluaApi Store"
+            "powered by": "🔥 KaluaApiAdmin",
+            "channel": "💎 KaluaApiStore",
+            "status": false,
+            "status_code": 403,
+            "message": "💎 pls purchase premium on KaluaApi Store 🚀"
         });
     }
 
     if (!num) {
         return res.status(400).json({
-            "powered by": "KaluaApiAdmin",
-            "channel": "KaluaApiStore",
-            "status": "error",
-            "message": "Aadhaar / Number is required (?num=)"
+            "powered by": "🔥 KaluaApiAdmin",
+            "channel": "💎 KaluaApiStore",
+            "status": false,
+            "status_code": 400,
+            "message": "⚠️ Number parameter is required (?num=) 📌"
         });
     }
 
     try {
         const upstreamUrl = `https://api.allprinthub.in/api?=adhaar_to_family&key=3day&num=${encodeURIComponent(num)}`;
-        const data = await fetchUpstream(upstreamUrl);
-        return sendSuccess(res, data);
+        const upstreamData = await fetchUpstream(upstreamUrl);
+
+        // Premium 3D styled response matching exact target format
+        return res.json({
+            "powered by": "🔥 KaluaApiAdmin",
+            "channel": "💎 KaluaApiStore",
+            "status": upstreamData.status ?? true,
+            "status_code": upstreamData.status_code ?? 200,
+            "message": "✨ Family details fetched instantly from local database cache (0 OTP used) 🚀",
+            "data": upstreamData.data || upstreamData,
+            "cached": upstreamData.cached ?? true,
+            "cached_at": upstreamData.cached_at || new Date().toISOString()
+        });
     } catch (err) {
-        return sendError(res, err.message);
+        return res.status(500).json({
+            "powered by": "🔥 KaluaApiAdmin",
+            "channel": "💎 KaluaApiStore",
+            "status": false,
+            "status_code": 500,
+            "message": "💎 pls purchase premium on KaluaApi Store 🚀",
+            "details": err.message
+        });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Aadhaar Family API Hub running on port ${PORT}`);
+    console.log(`🔥 Ultra-Premium Family API Hub running on port ${PORT}`);
 });
